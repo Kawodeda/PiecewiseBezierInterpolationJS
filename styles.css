@@ -46,6 +46,11 @@ p {
 .slider:hover {
     opacity: 1;
 }
+
+.slider:disabled {
+    opacity: 0.4;
+    filter: saturate(0.3);
+}
   
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;

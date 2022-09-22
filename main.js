@@ -33,58 +33,56 @@ window.addEventListener("load", () => {
     document.getElementById("toleranceSlider").addEventListener("input", onToleranceChanged);
     document.getElementById("shiftSlider").addEventListener("input", onShiftChanged);
     document.getElementById("masterSlider").addEventListener("input", onMasterChanged);
+    document.getElementById("pointsCheckbox").addEventListener("input", redraw);
+    document.getElementById("polylineCheckbox").addEventListener("input", redraw);
+    document.getElementById("originalCheckbox").addEventListener("input", redraw);
+    document.getElementById("masterCheckbox").addEventListener("input", onMasterCheckboxInput);
 
-    reloadOutput();
-    onToleranceChanged();
     onMasterChanged();
+    reloadOutput();
     onShiftChanged(); 
+    onToleranceChanged();    
     redraw(polyline);  
 });
 
 let mouseDrawing = false;
-let polyline = [
-    new Point(100, 100),
-    new Point(250, 150),
-    new Point(300, 300),
-    new Point(450, 250),
-    new Point(510, 140),
-    new Point(590, 250),
-    new Point(670, 140)
-];
+let polyline = [];
+let refinedPolyline = [];
 
-let densePolyline = [];
-{
-    let pointCount = 100;
-    let angle = Math.PI * 2;
-    for (let i = 0; i < pointCount; i++) {       
-        let factor = angle / pointCount;
-        let x = Math.cos(i * factor) * 150 + 200;
-        let y = Math.sin(i * factor) * 150 + 200;
-        densePolyline.push(
-            new Point(x, y)
-        );
-    }
+// polyline = [
+//     new Point(340, 340),
+//     new Point(400, 280),
+//     new Point(320, 200)
+// ];
+
+function onMasterCheckboxInput() {
+    const masterCheckbox = document.getElementById("masterCheckbox");
+    const masterSlider = document.getElementById("masterSlider");
+
+    masterSlider.disabled = !masterCheckbox.checked;
 }
 
-let closedPolyline = [];
-{
-    let pointCount = 6;
-    let angle = Math.PI * 2;
-    for (let i = 0; i < pointCount; i++) {       
-        let factor = angle / pointCount;
-        let r = 150 + Math.sin(i * 100 / pointCount) * 10;
-        let x = Math.cos(i * factor) * r + 200;
-        let y = Math.sin(i * factor) * r + 200;
-        closedPolyline.push(
-            new Point(x, y)
-        );
-    }
+function onMasterChanged() {
+    const output = document.getElementById("masterOutput");
+    var master = getMaster();
+    output.value = master;
+    
 }
 
-polyline = [];
+function masterToTangent(master) {
+    return master * 0.24 + 0.01;
+}
+
+function masterToTolerance(master) {
+    
+}
+
+function masterToNormalShift(master) {
+    
+}
 
 function onSimplifyClick() {
-    polyline = simplify(polyline, getTolerance());
+    refinedPolyline = simplify(polyline, getTolerance());
     redraw();
 }
 
@@ -101,6 +99,7 @@ function getTolerance() {
 function onToleranceChanged() {
     const output = document.getElementById("toleranceOutput");
     output.value = getTolerance();
+    onSimplifyClick();
 }
 
 function getShift() {
@@ -118,12 +117,7 @@ function onShiftChanged() {
 function getMaster() {
     const slider = document.getElementById("masterSlider");
 
-    return slider.value;
-}
-
-function onMasterChanged() {
-    const output = document.getElementById("masterOutput");
-    output.value = getMaster();
+    return slider.value / 100;
 }
 
 function startMouseDraw(event) {
@@ -133,6 +127,7 @@ function startMouseDraw(event) {
 
     mouseDrawing = true;
     polyline.push(getMousePosition(event));
+    onSimplifyClick();
     redraw();
 }
 
@@ -146,6 +141,7 @@ function mouseDraw(event) {
     }
 
     polyline.push(getMousePosition(event));
+    onSimplifyClick();
     redraw();
 }
 
@@ -184,16 +180,32 @@ function redraw() {
     const context = canvas.getContext("2d");
     const tangent = sliderValueToTangent();
     const tangentNormalShift = getShift();
+    const showPoints = document.getElementById("pointsCheckbox").checked;
+    const showPolyline = document.getElementById("polylineCheckbox").checked;
+    const showOriginal = document.getElementById("originalCheckbox").checked;
     
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    context.strokeStyle = "rgb(200, 200, 200)";
+    context.fillStyle = "rgb(200, 200, 200)";
+    context.setLineDash([5, 10]);    
+    if(showOriginal) {
+        drawPolyline(context, polyline, false);
+    }
+
     context.strokeStyle = "red";
     context.fillStyle = "red";
-    context.setLineDash([5, 10]);
-    drawPolyline(context, polyline);
+    if(showPolyline) {
+        drawPolyline(context, refinedPolyline, false);
+    }
+    if(showPoints) {
+        for(let point of refinedPolyline) {
+            drawPoint(context, point, 4);
+        }
+    }
     context.setLineDash([]);
     
-    var sections = getBezierPath(polyline, tangent, tangentNormalShift);
+    var sections = getBezierPath(refinedPolyline, tangent, tangentNormalShift);
 
     const convexHullInput = document.getElementById("covexHullInput");
     if(convexHullInput.checked) {
@@ -234,16 +246,19 @@ function getBezierPath(points, t, normalShift = 0) {
 function bezierControlPoints(p1, p2, p3, p4, t, shift = 0) {
     var dx1 = p1.x - p3.x;
     var dy1 = p1.y - p3.y;
+    var d12 = distance(p1, p2);
+    var d23 = distance(p2, p3);
 
-    var x1 = p2.x - dx1 * t;
-    var y1 = p2.y - dy1 * t;
+    var x1 = p2.x - dx1 * t * Math.min(d23 / d12, 1);
+    var y1 = p2.y - dy1 * t * Math.min(d23 / d12, 1);
     var cp1 = new Point(x1, y1);
 
     var dx2 = p2.x - p4.x;
     var dy2 = p2.y - p4.y;
+    var d34 = distance(p3, p4);
 
-    var x2 = p3.x + dx2 * t;
-    var y2 = p3.y + dy2 * t;
+    var x2 = p3.x + dx2 * t * Math.min(d23 / d34, 1);
+    var y2 = p3.y + dy2 * t * Math.min(d23 / d34, 1);
     var cp2 = new Point(x2, y2);
 
     var normalShift1 = normalVector(cp1, p2);
@@ -279,7 +294,7 @@ function drawPoint(context, point, size) {
     context.fillRect(point.x - size / 2, point.y - size / 2, size, size);
 }
 
-function drawPolyline(context, polyline) {
+function drawPolyline(context, polyline, drawPoints = true) {
     const pointSize = 4;
 
     context.beginPath();
@@ -290,7 +305,9 @@ function drawPolyline(context, polyline) {
     for(var i = 1; i < polyline.length; i++) {
         context.lineTo(polyline[i].x, polyline[i].y);
         context.stroke();
-        drawPoint(context, polyline[i], pointSize);
+        if(drawPoints) {
+            drawPoint(context, polyline[i], pointSize);
+        }        
     } 
     context.lineTo(polyline[0].x, polyline[0].y);
     context.stroke();
@@ -346,6 +363,11 @@ function simplifyParallelSegments(polyline, tolerance) {
     let removed = false;
     do {
         removed = false;
+        if(formSingleLine(result[result.length - 1], result[0], result[1], tolerance)) {
+            result.splice(0, 1);
+            count++;
+            removed = true;
+        }
         for (let i = 0; i < result.length - 2; i++) {
             if (formSingleLine(result[i], result[i + 1], result[i + 2], tolerance)) {
                 result.splice(i + 1, 1);
@@ -369,7 +391,7 @@ function simplifyParallelSegments(polyline, tolerance) {
 
 function formSingleLine(p1, p2, p3, tolerance) {
     const minValue = 1e-20;
-    const a = 20;
+    const tooCloseDistance = 20;
 
     let dy1 = absMax(p2.y - p1.y, minValue);
     let dy2 = absMax(p3.y - p2.y, minValue);
@@ -380,13 +402,14 @@ function formSingleLine(p1, p2, p3, tolerance) {
     let sin2 = dy2 / d2;
 
     let a1 = Math.asin(sin1);
-    let a2 = Math.asin(sin2)
+    let a2 = Math.asin(sin2);
 
     let diff = Math.abs(a1 - a2);
+    //console.log(a1, a2, diff);
 
     const factor = 1.5;
-    if (Math.min(d1, d2) <= a) {
-        tolerance *= factor * a / Math.min(d1, d2);
+    if (Math.min(d1, d2) <= tooCloseDistance) {
+        tolerance *= factor * tooCloseDistance / Math.min(d1, d2);
     }
     
     return diff <= tolerance;

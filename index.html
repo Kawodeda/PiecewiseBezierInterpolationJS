@@ -13,9 +13,11 @@
                 Show convex-hull
                 <input type="checkbox" id="covexHullInput">&emsp;
                 Show polyline
-                <input type="checkbox" id="polylineCheckbox" checked="true">&emsp;
+                <input type="checkbox" id="polylineCheckbox" checked>&emsp;
                 Show points
-                <input type="checkbox" id="pointsCheckbox" checked="true">&emsp;
+                <input type="checkbox" id="pointsCheckbox" checked>&emsp;
+                Show original
+                <input type="checkbox" id="originalCheckbox" checked>&emsp;
             </p>       
             <p>
                 Tangent line length factor:
@@ -31,16 +33,17 @@
                 Simplification tolerance:
                 <output id="toleranceOutput"></output>
             </p>
-            <input class="slider" type="range" min="1" max="100" value="40" id="toleranceSlider">
+            <input class="slider" type="range" min="-1" max="100" value="-1" id="toleranceSlider">
             <p></p>
             <input class="button" type="button" id="simplifyButton" value="Simplify">
         </div>
         <div class="subcontainer" style="width: 40%;">
             <p>
+                <input type="checkbox" id="masterCheckbox">
                 Master:
                 <output id="masterOutput"></output>
             </p>
-            <input class="slider" style="width: 100%;" type="range" min="0" max="100" value="0" id="masterSlider">
+            <input class="slider" style="width: 100%;" type="range" min="0" max="100" value="0" id="masterSlider" disabled>
         </div>
     </div>
 </body>
