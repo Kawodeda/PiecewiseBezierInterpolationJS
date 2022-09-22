@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "target": "ES5",
+        "lib": ["DOM", "ES2019"],
+        "module": "commonjs",
+        "sourceMap": true,
+        "noEmitOnError": false,
+        "noImplicitAny": true,
+        "strictNullChecks": false,
+        "noImplicitReturns": true
+    },
+    "include": ["./src/*.ts"]
+}

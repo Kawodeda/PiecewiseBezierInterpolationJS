@@ -1,10 +1,11 @@
 class Point {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
+    constructor(
+        public x: number, 
+        public y: number) {
+
     }
 
-    static sum(p1, p2) {
+    static sum(p1: Point, p2: Point) {
         var result = new Point(0, 0);
         result.add(p1);
         result.add(p2);
@@ -12,42 +13,57 @@ class Point {
         return result;
     }
 
-    add(other) {
+    add(other: Point) {
         this.x += other.x;
         this.y += other.y;
     }
 
-    scale(scalar) {
+    scale(scalar: number) {
         this.x *= scalar;
         this.y *= scalar;
     }
 }
 
+const convexHullInput = document.getElementById("convexHullInput") as HTMLInputElement;
+const tangentSlider = document.getElementById("tangentSlider") as HTMLInputElement;
+const simplifyButton = document.getElementById("simplifyButton") as HTMLInputElement;
+const toleranceSlider = document.getElementById("toleranceSlider") as HTMLInputElement;
+const shiftSlider = document.getElementById("shiftSlider") as HTMLInputElement;
+const masterSlider = document.getElementById("masterSlider") as HTMLInputElement;
+const pointsCheckbox = document.getElementById("pointsCheckbox") as HTMLInputElement;
+const polylineCheckbox = document.getElementById("polylineCheckbox") as HTMLInputElement;
+const originalCheckbox = document.getElementById("originalCheckbox") as HTMLInputElement;
+const masterCheckbox = document.getElementById("masterCheckbox") as HTMLInputElement;
+const masterOutput = document.getElementById("masterOutput") as HTMLOutputElement;
+const toleranceOutput = document.getElementById("toleranceOutput") as HTMLOutputElement;
+const shiftOutput = document.getElementById("shiftOutput") as HTMLOutputElement;
+const tangentOutput = document.getElementById("tangentOutput") as HTMLOutputElement;
+
 window.addEventListener("load", () => {
-    document.getElementById("covexHullInput").addEventListener("input", onDrawConvexHullInput);
-    document.getElementById("tangentSlider").addEventListener("input", onSliderInput);
     document.addEventListener("mousedown", startMouseDraw);
     document.addEventListener("mouseup", stopMouseDraw);
     document.addEventListener("mousemove", mouseDraw);
-    document.getElementById("simplifyButton").addEventListener("click", onSimplifyClick);
-    document.getElementById("toleranceSlider").addEventListener("input", onToleranceChanged);
-    document.getElementById("shiftSlider").addEventListener("input", onShiftChanged);
-    document.getElementById("masterSlider").addEventListener("input", onMasterChanged);
-    document.getElementById("pointsCheckbox").addEventListener("input", redraw);
-    document.getElementById("polylineCheckbox").addEventListener("input", redraw);
-    document.getElementById("originalCheckbox").addEventListener("input", redraw);
-    document.getElementById("masterCheckbox").addEventListener("input", onMasterCheckboxInput);
+    convexHullInput.addEventListener("input", onDrawConvexHullInput);
+    tangentSlider.addEventListener("input", onSliderInput);
+    simplifyButton.addEventListener("click", onSimplifyClick);
+    toleranceSlider.addEventListener("input", onToleranceChanged);
+    shiftSlider.addEventListener("input", onShiftChanged);
+    masterSlider.addEventListener("input", onMasterChanged);
+    pointsCheckbox.addEventListener("input", redraw);
+    polylineCheckbox.addEventListener("input", redraw);
+    originalCheckbox.addEventListener("input", redraw);
+    masterCheckbox.addEventListener("input", onMasterCheckboxInput);
 
     onMasterChanged();
     reloadOutput();
     onShiftChanged(); 
     onToleranceChanged();    
-    redraw(polyline);  
+    redraw();  
 });
 
 let mouseDrawing = false;
-let polyline = [];
-let refinedPolyline = [];
+let polyline: Point[] = [];
+let refinedPolyline: Point[] = [];
 
 // polyline = [
 //     new Point(340, 340),
@@ -55,72 +71,59 @@ let refinedPolyline = [];
 //     new Point(320, 200)
 // ];
 
-function onMasterCheckboxInput() {
-    const masterCheckbox = document.getElementById("masterCheckbox");
-    const masterSlider = document.getElementById("masterSlider");
-
+function onMasterCheckboxInput(): void {
     masterSlider.disabled = !masterCheckbox.checked;
 }
 
-function onMasterChanged() {
-    const output = document.getElementById("masterOutput");
+function onMasterChanged(): void {
     var master = getMaster();
-    output.value = master;
-    
+    masterOutput.value = master.toString();
 }
 
-function masterToTangent(master) {
+function masterToTangent(master: number): number {
     return master * 0.24 + 0.01;
 }
 
-function masterToTolerance(master) {
+// function masterToTolerance(master: number): number {
     
-}
+// }
 
-function masterToNormalShift(master) {
+// function masterToNormalShift(master: number): number {
     
-}
+// }
 
-function onSimplifyClick() {
+function onSimplifyClick(): void {
     refinedPolyline = simplify(polyline, getTolerance());
     redraw();
 }
 
-function simplify(polyline, tolerance) {
+function simplify(polyline: Point[], tolerance: number): Point[] {
     return simplifyParallelSegments(polyline, tolerance);
 }
 
-function getTolerance() {
-    const slider = document.getElementById("toleranceSlider");
-
-    return slider.value / 100;
+function getTolerance(): number {
+    return parseFloat(toleranceSlider.value) / 100;
 }
 
 function onToleranceChanged() {
-    const output = document.getElementById("toleranceOutput");
-    output.value = getTolerance();
+    toleranceOutput.value = getTolerance().toString();
     onSimplifyClick();
 }
 
-function getShift() {
-    const slider = document.getElementById("shiftSlider");
-
-    return slider.value - slider.max / 2;
+function getShift(): number {
+    return parseFloat(shiftSlider.value) - parseFloat(shiftSlider.max) / 2;
 }
 
-function onShiftChanged() {
-    const output = document.getElementById("shiftOutput");
-    output.value = getShift();
+function onShiftChanged(): void {
+    shiftOutput.value = getShift().toString();
     redraw();
 }
 
-function getMaster() {
-    const slider = document.getElementById("masterSlider");
-
-    return slider.value / 100;
+function getMaster(): number {
+    return parseFloat(masterSlider.value) / 100;
 }
 
-function startMouseDraw(event) {
+function startMouseDraw(event: MouseEvent): void {
     if(! checkMouseOnCanvas(event)) {
         return;
     }
@@ -131,11 +134,11 @@ function startMouseDraw(event) {
     redraw();
 }
 
-function stopMouseDraw(event) {
+function stopMouseDraw(event: MouseEvent) {
     mouseDrawing = false;
 }
 
-function mouseDraw(event) {
+function mouseDraw(event: MouseEvent) {
     if(! (mouseDrawing && checkMouseOnCanvas(event))) {
         return;
     }
@@ -145,44 +148,43 @@ function mouseDraw(event) {
     redraw();
 }
 
-function onSliderInput() {
+function onSliderInput(): void {
     reloadOutput();
     redraw();
 }
 
-function onDrawConvexHullInput() {
+function onDrawConvexHullInput(): void {
     redraw();
 }
 
-function sliderValueToTangent() {
-    const slider = document.getElementById("tangentSlider");
-
-    return slider.value / 1000; 
+function sliderValueToTangent(): number {
+    return parseFloat(tangentSlider.value) / 1000; 
 }
 
-function checkMouseOnCanvas(mouseEvent) {
-    const canvas = document.getElementById("mainCanvas");
+function checkMouseOnCanvas(mouseEvent: MouseEvent): boolean {
+    const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
     return mouseEvent.clientX >= canvas.offsetLeft 
         && mouseEvent.clientX <= canvas.offsetLeft + canvas.width
         && mouseEvent.clientY >= canvas.offsetTop
         && mouseEvent.clientY <= canvas.offsetTop + canvas.height;
 }
 
-function getMousePosition(mouseEvent) {
+function getMousePosition(mouseEvent: MouseEvent): Point {
     const canvas = document.getElementById("mainCanvas");
     let mouseX = mouseEvent.clientX - canvas.offsetLeft;
     let mouseY = mouseEvent.clientY - canvas.offsetTop;
     return new Point(mouseX, mouseY);
 }
 
-function redraw() {
-    const canvas = document.getElementById("mainCanvas");
+function redraw(): void {
+    const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
     const context = canvas.getContext("2d");
     const tangent = sliderValueToTangent();
     const tangentNormalShift = getShift();
-    const showPoints = document.getElementById("pointsCheckbox").checked;
-    const showPolyline = document.getElementById("polylineCheckbox").checked;
-    const showOriginal = document.getElementById("originalCheckbox").checked;
+    const showConvexHull = convexHullInput.checked;
+    const showPoints = pointsCheckbox.checked;
+    const showPolyline = polylineCheckbox.checked;
+    const showOriginal = originalCheckbox.checked;
     
     context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -207,8 +209,7 @@ function redraw() {
     
     var sections = getBezierPath(refinedPolyline, tangent, tangentNormalShift);
 
-    const convexHullInput = document.getElementById("covexHullInput");
-    if(convexHullInput.checked) {
+    if(showConvexHull) {
 
         context.strokeStyle = "greenYellow";
         context.fillStyle = "green";
@@ -221,13 +222,12 @@ function redraw() {
     }
 }
 
-function reloadOutput() {
-    const output = document.getElementById("tangentOutput");
-    output.value = sliderValueToTangent();
+function reloadOutput(): void {
+    tangentOutput.value = sliderValueToTangent().toString();
 }
 
-function getBezierPath(points, t, normalShift = 0) {
-    var sections = [];
+function getBezierPath(points: Point[], t: number, normalShift: number = 0): Point[][] {
+    var sections: Point[][] = [];
 
     sections[0] = bezierControlPoints(points[points.length - 1], points[0], points[1], points[2], t, normalShift);
     for(let i = 1; i < points.length - 2; i++) {
@@ -243,7 +243,7 @@ function getBezierPath(points, t, normalShift = 0) {
     return sections;
 }
 
-function bezierControlPoints(p1, p2, p3, p4, t, shift = 0) {
+function bezierControlPoints(p1: Point, p2: Point, p3: Point, p4: Point, t: number, shift: number = 0): Point[] {
     var dx1 = p1.x - p3.x;
     var dy1 = p1.y - p3.y;
     var d12 = distance(p1, p2);
@@ -277,24 +277,24 @@ function bezierControlPoints(p1, p2, p3, p4, t, shift = 0) {
     return result;
 }
 
-function normalVector(p1, p2) {
+function normalVector(p1: Point, p2: Point): Point {
     var dx = p2.x - p1.x;
     var dy = p2.y - p1.y;
 
     return normalize(new Point(-dy, dx));
 }
 
-function normalize(point) {
+function normalize(point: Point): Point {
     var d = distance(new Point(0, 0), point);
 
     return new Point(point.x / d, point.y / d);
 }
 
-function drawPoint(context, point, size) {
+function drawPoint(context: CanvasRenderingContext2D, point: Point, size: number): void {
     context.fillRect(point.x - size / 2, point.y - size / 2, size, size);
 }
 
-function drawPolyline(context, polyline, drawPoints = true) {
+function drawPolyline(context: CanvasRenderingContext2D, polyline: Point[], drawPoints: boolean = true): void {
     const pointSize = 4;
 
     context.beginPath();
@@ -313,49 +313,21 @@ function drawPolyline(context, polyline, drawPoints = true) {
     context.stroke();
 }
 
-function drawConvexHull(context, polyline, controlPoints) {
-    var points = controlPoints.flatMap(x => [x[0], x[1]]);
-
-    var hullPolyline = [];
-    for(let i = 0; i < controlPoints.length - 1; i++) {
-        hullPolyline.push(polyline[i], controlPoints[i][0], controlPoints[i + 1][1]);
-    }
-    hullPolyline.push(
-        polyline[polyline.length - 1], 
-        controlPoints[controlPoints.length - 1][0], 
-        controlPoints[0][1],
-        polyline[0]);
-
-    context.save();
-    context.strokeStyle = "greenYellow";
-    context.fillStyle = "green";
-    context.beginPath();
-    context.moveTo(hullPolyline[0].x, hullPolyline[0].y);
-    for(let i = 1; i < hullPolyline.length; i++) {
-        context.lineTo(hullPolyline[i].x, hullPolyline[i].y);
-        context.stroke();
-    }
-    for(let point of points) {
-        drawPoint(context, point, 4);
-    }
-    context.restore();
-}
-
-function drawQuadraticBezier(context, p1, p2, p3) {
+function drawQuadraticBezier(context: CanvasRenderingContext2D, p1: Point, p2: Point, p3: Point): void {
     context.beginPath();
     context.moveTo(p1.x, p1.y);
     context.quadraticCurveTo(p2.x, p2.y, p3.x, p3.y);
     context.stroke();
 }
 
-function drawBezier(context, p1, p2, p3, p4) {
+function drawBezier(context: CanvasRenderingContext2D, p1: Point, p2: Point, p3: Point, p4: Point): void {
     context.beginPath();
     context.moveTo(p1.x, p1.y);
     context.bezierCurveTo(p2.x, p2.y, p3.x, p3.y, p4.x, p4.y);
     context.stroke();
 }
 
-function simplifyParallelSegments(polyline, tolerance) {
+function simplifyParallelSegments(polyline: Point[], tolerance: number): Point[] {
     let result = cloneArray(polyline);
     let count = 0;
     
@@ -389,7 +361,7 @@ function simplifyParallelSegments(polyline, tolerance) {
     return result;
 }
 
-function formSingleLine(p1, p2, p3, tolerance) {
+function formSingleLine(p1: Point, p2: Point, p3: Point, tolerance: number): boolean {
     const minValue = 1e-20;
     const tooCloseDistance = 20;
 
@@ -415,7 +387,7 @@ function formSingleLine(p1, p2, p3, tolerance) {
     return diff <= tolerance;
 }
 
-function absMax(value, min) {
+function absMax(value: number, min: number): number {
     if(Math.abs(value) < min) {
         if(value >= 0) {
             return min;
@@ -428,13 +400,13 @@ function absMax(value, min) {
     return value;
 }
 
-function distance(p1, p2) {
+function distance(p1: Point, p2: Point): number {
     let dx = p2.x - p1.x;
     let dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-function cloneArray(array) {
+function cloneArray<T>(array: Array<T>): Array<T> {
     let result = [];
     for(let element of array) {
         result.push(element);
