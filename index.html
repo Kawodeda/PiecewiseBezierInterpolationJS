@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="main.js"></script>
+    <title>Interpolation</title>
+</head>
+<body>
+    <canvas id="mainCanvas" width="800" height="600"></canvas>
+    <div class="container">
+        <div class="subcontainer" style="width: 50%;">
+            <p>
+                Show convex-hull
+                <input type="checkbox" id="covexHullInput">&emsp;
+                Show polyline
+                <input type="checkbox" id="polylineCheckbox" checked="true">&emsp;
+                Show points
+                <input type="checkbox" id="pointsCheckbox" checked="true">&emsp;
+            </p>       
+            <p>
+                Tangent line length factor:
+                <output id="tangentOutput"></output>
+            </p>
+            <input class="slider" type="range" min="10" max="500" value="200" id="tangentSlider">
+            <p>
+                Tangent line normal shift:
+                <output id="shiftOutput"></output>
+            </p>
+            <input class="slider" type="range" min="0" max="80" value="40" id="shiftSlider">
+            <p>
+                Simplification tolerance:
+                <output id="toleranceOutput"></output>
+            </p>
+            <input class="slider" type="range" min="1" max="100" value="40" id="toleranceSlider">
+            <p></p>
+            <input class="button" type="button" id="simplifyButton" value="Simplify">
+        </div>
+        <div class="subcontainer" style="width: 40%;">
+            <p>
+                Master:
+                <output id="masterOutput"></output>
+            </p>
+            <input class="slider" style="width: 100%;" type="range" min="0" max="100" value="0" id="masterSlider">
+        </div>
+    </div>
+</body>
+</html>
