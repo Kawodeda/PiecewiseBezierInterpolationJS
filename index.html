@@ -12,9 +12,9 @@
                 Show convex-hull
                 <input type="checkbox" id="convexHullInput">&emsp;
                 Show polyline
-                <input type="checkbox" id="polylineCheckbox" checked>&emsp;
+                <input type="checkbox" id="polylineCheckbox" >&emsp;
                 Show points
-                <input type="checkbox" id="pointsCheckbox" checked>&emsp;
+                <input type="checkbox" id="pointsCheckbox" >&emsp;
                 Show original
                 <input type="checkbox" id="originalCheckbox" checked>&emsp;
             </p>       
@@ -22,7 +22,7 @@
                 Tangent line length factor:
                 <output id="tangentOutput"></output>
             </p>
-            <input class="slider" type="range" min="10" max="500" value="200" id="tangentSlider">
+            <input class="slider" type="range" min="1" max="500" value="200" id="tangentSlider">
             <p>
                 Tangent line normal shift:
                 <output id="shiftOutput"></output>
@@ -38,11 +38,11 @@
         </div>
         <div class="subcontainer" style="width: 40%;">
             <p>
-                <input type="checkbox" id="masterCheckbox">
+                <input type="checkbox" id="masterCheckbox" checked>
                 Master:
                 <output id="masterOutput"></output>
             </p>
-            <input class="slider" style="width: 100%;" type="range" min="0" max="100" value="0" id="masterSlider" disabled>
+            <input class="slider" style="width: 100%;" type="range" min="0" max="100" value="0" id="masterSlider">
         </div>
     </div>
     <script src="./built/main.js"></script>

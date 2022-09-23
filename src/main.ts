@@ -44,7 +44,7 @@ window.addEventListener("load", () => {
     document.addEventListener("mouseup", stopMouseDraw);
     document.addEventListener("mousemove", mouseDraw);
     convexHullInput.addEventListener("input", onDrawConvexHullInput);
-    tangentSlider.addEventListener("input", onSliderInput);
+    tangentSlider.addEventListener("input", onTangentSliderInput);
     simplifyButton.addEventListener("click", onSimplifyClick);
     toleranceSlider.addEventListener("input", onToleranceChanged);
     shiftSlider.addEventListener("input", onShiftChanged);
@@ -73,20 +73,58 @@ let refinedPolyline: Point[] = [];
 
 function onMasterCheckboxInput(): void {
     masterSlider.disabled = !masterCheckbox.checked;
+
+    if(! masterSlider.disabled) {
+        onMasterChanged();
+    }   
 }
 
 function onMasterChanged(): void {
     var master = getMaster();
     masterOutput.value = master.toString();
+    tangentSlider.value = tangentToSliderValue(masterToTangent(master));
+    reloadOutput();
+    toleranceSlider.value = toleranceToSliderValue(masterToTolerance(master));
+    onToleranceChanged();
 }
 
-function masterToTangent(master: number): number {
-    return master * 0.24 + 0.01;
-}
-
-// function masterToTolerance(master: number): number {
-    
+// if(master <= 0.1) {
+//     return master * 2.499 + 0.001;
 // }
+// else if(master > 0.1 && master < 0.65) {
+//     return 0.25;
+// } 
+// else {
+//     return master * (1 / 7) + (11 / 70);
+// }
+function masterToTangent(master: number): number {
+    if(master <= 0.1) {
+        return 0.001;
+    }
+    else if(master > 0.1 && master <= 0.5) {
+        return master * 0.6225 - 0.06125;
+    }
+    else if(master > 0.5 && master <= 0.75){
+        return 0.25;
+    } 
+    else {
+        return master * 0.28 + 0.04;
+    }
+}
+
+// master * 0.56 - 0.01;
+// master * 1.44 - 0.01;
+function masterToTolerance(master: number): number {
+    if(master <= 0.25) {
+        return 0.03 * Math.pow(27896.8, master) - 0.04;
+    }
+    else if(master > 0.25 && master <= 0.55) {
+        return 0.35;
+    }
+    else {
+        return master * (4 / 9) + (19 / 180);
+    }
+}
 
 // function masterToNormalShift(master: number): number {
     
@@ -101,17 +139,9 @@ function simplify(polyline: Point[], tolerance: number): Point[] {
     return simplifyParallelSegments(polyline, tolerance);
 }
 
-function getTolerance(): number {
-    return parseFloat(toleranceSlider.value) / 100;
-}
-
 function onToleranceChanged() {
     toleranceOutput.value = getTolerance().toString();
     onSimplifyClick();
-}
-
-function getShift(): number {
-    return parseFloat(shiftSlider.value) - parseFloat(shiftSlider.max) / 2;
 }
 
 function onShiftChanged(): void {
@@ -121,6 +151,26 @@ function onShiftChanged(): void {
 
 function getMaster(): number {
     return parseFloat(masterSlider.value) / 100;
+}
+
+function getTangent(): number {
+    return parseFloat(tangentSlider.value) / 1000; 
+}
+
+function getShift(): number {
+    return parseFloat(shiftSlider.value) - parseFloat(shiftSlider.max) / 2;
+}
+
+function getTolerance(): number {
+    return parseFloat(toleranceSlider.value) / 100;
+}
+
+function tangentToSliderValue(tangent: number): string {
+    return (tangent * 1000).toString();
+}
+
+function toleranceToSliderValue(tolerance: number): string {
+    return (tolerance * 100).toString();
 }
 
 function startMouseDraw(event: MouseEvent): void {
@@ -148,17 +198,13 @@ function mouseDraw(event: MouseEvent) {
     redraw();
 }
 
-function onSliderInput(): void {
+function onTangentSliderInput(): void {
     reloadOutput();
     redraw();
 }
 
 function onDrawConvexHullInput(): void {
     redraw();
-}
-
-function sliderValueToTangent(): number {
-    return parseFloat(tangentSlider.value) / 1000; 
 }
 
 function checkMouseOnCanvas(mouseEvent: MouseEvent): boolean {
@@ -179,7 +225,7 @@ function getMousePosition(mouseEvent: MouseEvent): Point {
 function redraw(): void {
     const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
     const context = canvas.getContext("2d");
-    const tangent = sliderValueToTangent();
+    const tangent = getTangent();
     const tangentNormalShift = getShift();
     const showConvexHull = convexHullInput.checked;
     const showPoints = pointsCheckbox.checked;
@@ -223,7 +269,7 @@ function redraw(): void {
 }
 
 function reloadOutput(): void {
-    tangentOutput.value = sliderValueToTangent().toString();
+    tangentOutput.value = getTangent().toString();
 }
 
 function getBezierPath(points: Point[], t: number, normalShift: number = 0): Point[][] {
