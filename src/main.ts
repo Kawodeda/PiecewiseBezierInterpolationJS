@@ -5,12 +5,20 @@ class Point {
 
     }
 
+    get magnitude() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
     static sum(p1: Point, p2: Point) {
         var result = new Point(0, 0);
         result.add(p1);
         result.add(p2);
 
         return result;
+    }
+
+    negate() {
+        return new Point(-this.x, -this.y);
     }
 
     add(other: Point) {
@@ -65,12 +73,6 @@ let mouseDrawing = false;
 let polyline: Point[] = [];
 let refinedPolyline: Point[] = [];
 
-// polyline = [
-//     new Point(340, 340),
-//     new Point(400, 280),
-//     new Point(320, 200)
-// ];
-
 function onMasterCheckboxInput(): void {
     masterSlider.disabled = !masterCheckbox.checked;
 
@@ -88,47 +90,35 @@ function onMasterChanged(): void {
     onToleranceChanged();
 }
 
-// if(master <= 0.1) {
-//     return master * 2.499 + 0.001;
-// }
-// else if(master > 0.1 && master < 0.65) {
-//     return 0.25;
-// } 
-// else {
-//     return master * (1 / 7) + (11 / 70);
-// }
 function masterToTangent(master: number): number {
-    if(master <= 0.1) {
+    if(master <= 0.3) {
         return 0.001;
     }
-    else if(master > 0.1 && master <= 0.5) {
-        return master * 0.6225 - 0.06125;
+    else if(master > 0.3 && master <= 0.6) {
+        return master * (199 / 300) - 0.198;
     }
-    else if(master > 0.5 && master <= 0.75){
+    else if(master > 0.6 && master <= 0.8){
+        return master * 0.25 + 0.05;
+    }
+    else {
         return 0.25;
-    } 
-    else {
-        return master * 0.28 + 0.04;
     }
 }
 
-// master * 0.56 - 0.01;
-// master * 1.44 - 0.01;
 function masterToTolerance(master: number): number {
-    if(master <= 0.25) {
-        return 0.03 * Math.pow(27896.8, master) - 0.04;
+    if(master <= 0.4) {
+        return master * 0.65 - 0.01;
     }
-    else if(master > 0.25 && master <= 0.55) {
-        return 0.35;
+    else if(master > 0.4 && master <= 0.6) {
+        return master * 0.25 + 0.15;
+    }
+    else if(master > 0.6 && master <= 0.8) {
+        return 0.3;
     }
     else {
-        return master * (4 / 9) + (19 / 180);
+        return master * 2 - 1.3;
     }
 }
-
-// function masterToNormalShift(master: number): number {
-    
-// }
 
 function onSimplifyClick(): void {
     refinedPolyline = simplify(polyline, getTolerance());
@@ -411,19 +401,13 @@ function formSingleLine(p1: Point, p2: Point, p3: Point, tolerance: number): boo
     const minValue = 1e-20;
     const tooCloseDistance = 20;
 
-    let dy1 = absMax(p2.y - p1.y, minValue);
-    let dy2 = absMax(p3.y - p2.y, minValue);
-
     let d1 = absMax(distance(p1, p2), minValue);
     let d2 = absMax(distance(p2, p3), minValue);
-    let sin1 = dy1 / d1;
-    let sin2 = dy2 / d2;
 
-    let a1 = Math.asin(sin1);
-    let a2 = Math.asin(sin2);
+    let v1 = Point.sum(p1, p2.negate());
+    let v2 = Point.sum(p2, p3.negate());
 
-    let diff = Math.abs(a1 - a2);
-    //console.log(a1, a2, diff);
+    let diff = angle(v1, v2);
 
     const factor = 1.5;
     if (Math.min(d1, d2) <= tooCloseDistance) {
@@ -450,6 +434,14 @@ function distance(p1: Point, p2: Point): number {
     let dx = p2.x - p1.x;
     let dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
+}
+
+function angle(p1: Point, p2: Point): number {
+    return Math.acos(dotProduct(p1, p2) / (p1.magnitude * p2.magnitude));
+}
+
+function dotProduct(p1: Point, p2: Point): number {
+    return p1.x * p2.x + p1.y * p2.y;
 }
 
 function cloneArray<T>(array: Array<T>): Array<T> {

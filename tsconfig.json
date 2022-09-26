@@ -8,7 +8,7 @@
         "noEmitOnError": false,
         "noImplicitAny": true,
         "strictNullChecks": false,
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
     },
     "include": ["./src/*.ts"]
 }
