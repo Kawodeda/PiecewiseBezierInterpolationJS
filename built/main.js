@@ -205,12 +205,6 @@ function redraw() {
     if (showPolyline) {
         drawPolyline(context, refinedPolyline, false);
     }
-    if (showPoints) {
-        for (var _i = 0, refinedPolyline_1 = refinedPolyline; _i < refinedPolyline_1.length; _i++) {
-            var point = refinedPolyline_1[_i];
-            drawPoint(context, point, 2);
-        }
-    }
     context.setLineDash([]);
     var sections = getBezierPath(refinedPolyline, tangent, tangentNormalShift);
     if (showConvexHull) {
@@ -219,11 +213,28 @@ function redraw() {
         drawPolyline(context, sections.flat());
     }
     if (showCurve) {
-        for (var _a = 0, sections_1 = sections; _a < sections_1.length; _a++) {
-            var section = sections_1[_a];
+        for (var _i = 0, sections_1 = sections; _i < sections_1.length; _i++) {
+            var section = sections_1[_i];
             //context.strokeStyle = `rgb(${0}, ${Math.random() * 255}, ${Math.random() * 255})`;
             context.strokeStyle = "blue";
+            context.fillStyle = "lightblue";
             drawBezier(context, section[0], section[1], section[2], section[3]);
+        }
+        context.beginPath();
+        context.moveTo(sections[0][0].x, sections[0][0].y);
+        for (var _a = 0, sections_2 = sections; _a < sections_2.length; _a++) {
+            var section = sections_2[_a];
+            context.bezierCurveTo(section[1].x, section[1].y, section[2].x, section[2].y, section[3].x, section[3].y);
+        }
+        context.closePath();
+        context.fill();
+    }
+    if (showPoints) {
+        context.strokeStyle = "red";
+        context.fillStyle = "red";
+        for (var _b = 0, refinedPolyline_1 = refinedPolyline; _b < refinedPolyline_1.length; _b++) {
+            var point = refinedPolyline_1[_b];
+            drawPoint(context, point, 4);
         }
     }
 }

@@ -239,11 +239,6 @@ function redraw(): void {
     if(showPolyline) {
         drawPolyline(context, refinedPolyline, false);
     }
-    if(showPoints) {
-        for(let point of refinedPolyline) {
-            drawPoint(context, point, 2);
-        }
-    }
     context.setLineDash([]);
     
     var sections = getBezierPath(refinedPolyline, tangent, tangentNormalShift);
@@ -259,7 +254,24 @@ function redraw(): void {
         for (let section of sections) {
             //context.strokeStyle = `rgb(${0}, ${Math.random() * 255}, ${Math.random() * 255})`;
             context.strokeStyle = "blue";
+            context.fillStyle = "lightblue";
             drawBezier(context, section[0], section[1], section[2], section[3]);
+        }
+
+        context.beginPath();
+        context.moveTo(sections[0][0].x, sections[0][0].y);
+        for (let section of sections) {
+            context.bezierCurveTo(section[1].x, section[1].y, section[2].x, section[2].y, section[3].x, section[3].y);
+        }
+        context.closePath();
+        context.fill();
+    }
+
+    if(showPoints) {
+        context.strokeStyle = "red";
+        context.fillStyle = "red";
+        for(let point of refinedPolyline) {
+            drawPoint(context, point, 4);
         }
     }
 }
