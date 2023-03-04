@@ -39,6 +39,7 @@ var pointsCheckbox = document.getElementById("pointsCheckbox");
 var polylineCheckbox = document.getElementById("polylineCheckbox");
 var originalCheckbox = document.getElementById("originalCheckbox");
 var masterCheckbox = document.getElementById("masterCheckbox");
+var curveChechbox = document.getElementById("curveCheckbox");
 var masterOutput = document.getElementById("masterOutput");
 var toleranceOutput = document.getElementById("toleranceOutput");
 var shiftOutput = document.getElementById("shiftOutput");
@@ -56,6 +57,7 @@ window.addEventListener("load", function () {
     pointsCheckbox.addEventListener("input", redraw);
     polylineCheckbox.addEventListener("input", redraw);
     originalCheckbox.addEventListener("input", redraw);
+    curveChechbox.addEventListener("input", redraw);
     masterCheckbox.addEventListener("input", onMasterCheckboxInput);
     onMasterChanged();
     reloadOutput();
@@ -190,6 +192,7 @@ function redraw() {
     var showPoints = pointsCheckbox.checked;
     var showPolyline = polylineCheckbox.checked;
     var showOriginal = originalCheckbox.checked;
+    var showCurve = curveChechbox.checked;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.strokeStyle = "rgb(200, 200, 200)";
     context.fillStyle = "rgb(200, 200, 200)";
@@ -205,7 +208,7 @@ function redraw() {
     if (showPoints) {
         for (var _i = 0, refinedPolyline_1 = refinedPolyline; _i < refinedPolyline_1.length; _i++) {
             var point = refinedPolyline_1[_i];
-            drawPoint(context, point, 4);
+            drawPoint(context, point, 2);
         }
     }
     context.setLineDash([]);
@@ -215,10 +218,13 @@ function redraw() {
         context.fillStyle = "green";
         drawPolyline(context, sections.flat());
     }
-    context.strokeStyle = "blue";
-    for (var _a = 0, sections_1 = sections; _a < sections_1.length; _a++) {
-        var section = sections_1[_a];
-        drawBezier(context, section[0], section[1], section[2], section[3]);
+    if (showCurve) {
+        for (var _a = 0, sections_1 = sections; _a < sections_1.length; _a++) {
+            var section = sections_1[_a];
+            //context.strokeStyle = `rgb(${0}, ${Math.random() * 255}, ${Math.random() * 255})`;
+            context.strokeStyle = "blue";
+            drawBezier(context, section[0], section[1], section[2], section[3]);
+        }
     }
 }
 function reloadOutput() {
@@ -278,17 +284,19 @@ function drawPolyline(context, polyline, drawPoints) {
     if (drawPoints === void 0) { drawPoints = true; }
     var pointSize = 4;
     context.beginPath();
-    drawPoint(context, polyline[0], pointSize);
     context.moveTo(polyline[0].x, polyline[0].y);
     for (var i = 1; i < polyline.length; i++) {
         context.lineTo(polyline[i].x, polyline[i].y);
         context.stroke();
-        if (drawPoints) {
-            drawPoint(context, polyline[i], pointSize);
-        }
     }
     context.lineTo(polyline[0].x, polyline[0].y);
     context.stroke();
+    if (drawPoints) {
+        for (var _i = 0, polyline_1 = polyline; _i < polyline_1.length; _i++) {
+            var point = polyline_1[_i];
+            drawPoint(context, point, pointSize);
+        }
+    }
 }
 function drawQuadraticBezier(context, p1, p2, p3) {
     context.beginPath();
